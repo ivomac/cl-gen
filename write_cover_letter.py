@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
-import argparse
+import subprocess as sp
 import sys
 from pathlib import Path
 
 import litellm
 from sentence_transformers import SentenceTransformer, util
+
+CLUSTERS_FILE = Path(__file__).parent / "clusters.md"
 
 EMBED_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 GEN_MODEL = "anthropic/claude-sonnet-4-20250514"
@@ -57,19 +59,22 @@ Ivo Aguiar Maceira
 """
 
 
-def write_cover_letter(post, encoder, clusters):
-    with open(post) as f:
-        job_desc = f.read()
+def notify(title, message):
+    sp.run(
+        [
+            "notify-send",
+            "--app-name=Deepgram",
+            "--icon=/usr/share/icons/Papirus/128x128/apps/gtranscribe.svg",
+            title,
+            message,
+        ]
+    )
 
-    if not job_desc:
-        raise ValueError(f"{post.name} is empty")
 
-    cl_file = post.parent / "CL.tex"
-    if cl_file.is_file():
-        print(f"CL for {post.name} already exists", file=sys.stderr)
-        return
+def write_cover_letter(job_desc):
+    clusters = CLUSTERS_FILE.read_text().split("\n\n")
+    encoder = SentenceTransformer(EMBED_MODEL, device="cpu")
 
-    print(f"Generating CL for {post.name}...", file=sys.stderr)
     cluster_scores = (
         util.cos_sim(
             encoder.encode(clusters),
@@ -96,29 +101,27 @@ def write_cover_letter(post, encoder, clusters):
         ],
     )
 
-    if response.content and hasattr(response.content[0], "text"):
-        message = getattr(response.content[0], "text").strip()
-        recipient, *paragraphs = message.split("\n\n")
-        letter = TEMPLATE.format(recipient=recipient, body="\n\n".join(paragraphs))
-        cl_file.write_text(letter)
-    else:
-        raise litellm.exceptions.APIError("Unexpected response from API")
+    message = response.choices[0].message.content.strip()
+    recipient, *paragraphs = message.split("\n\n")
+    print(TEMPLATE.format(recipient=recipient, body="\n\n".join(paragraphs)))
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--clusters", type=Path, default="./clusters.txt", help="Path to clusters file"
-    )
-    parser.add_argument("path", nargs="*", type=Path, help="Path(s) to job posting")
-    args = parser.parse_args()
+    job_desc = sys.stdin.read().strip()
 
-    if args.path:
-        clusters = args.clusters.read_text().split("\n\n")
+    if job_desc:
+        notify("Cover Letter", "Generating CL...")
 
-        encoder = SentenceTransformer(EMBED_MODEL, device="cpu")
-        for path in args.path:
-            write_cover_letter(path, encoder, clusters)
+        try:
+            write_cover_letter(job_desc)
+        except Exception as e:
+            notify("Cover Letter Error", f"{e}")
+            sys.exit(1)
+
+        notify("Cover Letter", "CL generated!")
+    else:
+        notify("Cover Letter", "No job description provided.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
