@@ -4,9 +4,6 @@ import subprocess as sp
 import sys
 from pathlib import Path
 
-import litellm
-from sentence_transformers import SentenceTransformer, util
-
 CLUSTERS_FILE = Path(__file__).parent / "clusters.md"
 
 EMBED_MODEL = "Qwen/Qwen3-Embedding-0.6B"
@@ -72,6 +69,9 @@ def notify(title, message):
 
 
 def write_cover_letter(job_desc):
+    import litellm
+    from sentence_transformers import SentenceTransformer, util
+
     clusters = CLUSTERS_FILE.read_text().split("\n\n")
     encoder = SentenceTransformer(EMBED_MODEL, device="cpu")
 
