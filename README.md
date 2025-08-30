@@ -43,20 +43,19 @@ Go through the output file and edit it appropriately, adding/removing sentences/
 
 ### 2. Generate Cover Letters
 
-Create a text file with the job posting, then generate a cover letter:
+Select/Copy the job posting, then generate a cover letter:
 
 ```bash
-python write_cover_letter.py --clusters clusters.md job_posting.txt
+xsel | python write_cover_letter.py | xsel
 ```
 
-This will create a `CL.tex` file in the same directory as the job posting.
+This will copy the generated cover letter to X selection.
 
 ## File Structure
 
 - `cluster_cover_letter_sentences.py` - Main clustering script
 - `write_cover_letter.py` - Cover letter generation script
-- `clusters.md` - Example clustered experiences (generated output)
-- `README.md` - This file
+- `example_clusters.md` - Example clusters file
 
 ## Default Models Used
 
