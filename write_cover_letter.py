@@ -22,12 +22,11 @@ The format should be:
 
 [paragraph 2]
 
-...
-
 Further instructions:
 - Output only the recipient name and text body, in plain text.
 - Skip greeting (Dear ...,) and closing (Best regards, ...) lines.
 - You can write comments preceded with "% " with thoughts and opinions.
+- Write a maximum of two paragraphs.
 - Be concise and not overly formal.
 - Stay within the vocabulary and information provided.
 - Do not use punctuation or new words not present in the text like:
@@ -49,25 +48,12 @@ Job Post:
 """
 
 TEMPLATE = r"""
-\documentclass[11pt,a4paper,sans]{{article}}
-
-\usepackage[scale=0.80]{{geometry}}
-
-\usepackage[dvipsnames]{{xcolor}}
-
-\usepackage{{fontspec}}
-\setmainfont{{Tex Gyre Heros}}
-
-\begin{{document}}
-
 Dear {recipient},
 
 {body}
 
-Sincerely, \\
+Sincerely,
 Ivo Aguiar Maceira
-
-\end{{document}}
 """
 
 
